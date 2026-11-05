@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using dev.kaldiroglu.SecureCoding.Shop.Vulnerable.Domain;
 using Xunit;
 
 namespace dev.kaldiroglu.SecureCoding.Shop.Tests;
@@ -9,6 +10,21 @@ public class DeserializationTests
 {
     private static StringContent Json(string s) => new(s, Encoding.UTF8, "application/json");
     private static StringContent Xml(string s) => new(s, Encoding.UTF8, "application/xml");
+
+    // Documents the gadget side-effect directly so coverage is retained after TypeNameHandling is disabled.
+    [Fact]
+    public void ImportGadget_writes_file_when_trigger_set()
+    {
+        var sentinel = Path.Combine(Path.GetTempPath(), "scc-gadget-direct.txt");
+        if (File.Exists(sentinel)) File.Delete(sentinel);
+
+        var gadget = new ImportGadget { Trigger = sentinel };
+
+        Assert.True(File.Exists(sentinel));
+        Assert.Equal("pwned-by-deser", File.ReadAllText(sentinel));
+        Assert.Equal(sentinel, gadget.Trigger);
+        File.Delete(sentinel);
+    }
 
     [Fact]
     public async Task Vulnerable_json_ignores_type_directives()
