@@ -9,11 +9,8 @@ namespace dev.kaldiroglu.SecureCoding.Shop.Vulnerable.Controllers;
 [Route("products")]
 public class ProductsController(ShopDbContext db) : ControllerBase
 {
-    // CWE-89: SQL Injection — user input concatenated into a raw SQL string.
+    // Parameterized via LINQ — input can never alter the query structure.
     [HttpGet("search")]
-    public async Task<List<Product>> Search(string q)
-    {
-        var sql = $"SELECT * FROM Products WHERE Name LIKE '%{q}%'";
-        return await db.Products.FromSqlRaw(sql).ToListAsync();
-    }
+    public async Task<List<Product>> Search(string q) =>
+        await db.Products.Where(p => p.Name.Contains(q)).ToListAsync();
 }
